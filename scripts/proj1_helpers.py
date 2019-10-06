@@ -55,6 +55,24 @@ def load_csv_data(data_path, sub_sample=False):
     return yb, input_data, ids
 
 
+def split_data(x, y, ratio, seed=1):
+    """
+    Splits the dataset based on the split ratio. If ratio is 0.8
+    you will have 80% of your data set dedicated to training
+    and the rest dedicated to testing
+    """
+    np.random.seed(seed)
+    permutation = np.random.permutation(x.shape[0])
+    x = x[permutation]
+    y = y[permutation]
+    n = int(ratio * x.shape[0])
+    x_tr = x[:n]
+    x_te = x[n:]
+    y_tr = y[:n]
+    y_te = y[n:]
+    return x_tr, y_tr, x_te, y_te
+
+
 def predict_labels(weights, data):
     """Generates class predictions given weights, and a test data matrix"""
     y_pred = np.dot(data, weights)
