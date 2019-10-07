@@ -108,6 +108,10 @@ def predict_labels(weights, data):
     return y_pred
 
 
+def compute_accuracy(y_true, y_pred):
+    return np.round(np.sum(y_pred * y_true > 0) / len(y_true), 4)
+
+
 def create_csv_submission(ids, y_pred, name):
     """
     Creates an output file in csv format for submission to kaggle

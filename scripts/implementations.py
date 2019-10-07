@@ -1,5 +1,5 @@
 import numpy as np
-from helpers import batch_iter
+from proj1_helpers import batch_iter
 
 """In the above method signatures, for iterative methods, initial w is
 the initial weight vector, gamma is the step-size, and max iters is the 
@@ -14,7 +14,7 @@ vector of the method, and the corresponding loss value (cost function)."""
 
 def compute_loss(y, tX, w):
     """Compute the loss."""
-    return (1 / (2 * len(y))) * np.sum((y - np.dot(tX, w)) ** 2)
+    return np.round((1 / (2 * len(y))) * np.sum((y - np.dot(tX, w)) ** 2), 4)
 
 
 def compute_gradient(y, tX, w):
@@ -22,20 +22,21 @@ def compute_gradient(y, tX, w):
     return (-1 / len(y)) * np.dot(tX.T, y - np.dot(tX, w))
 
 
-def least_squares_GD(y, tX, initial_w, max_iters, gamma):
+def least_squares_GD(y, tX, initial_w, max_iters, gamma, mute=True):
     """Linear regression using gradient descent"""
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_gradient(y, tX, w)
         loss = compute_loss(y, tX, w)
         w = w - gamma * gradient
-        print("Gradient Descent({bi}/{ti}): loss={l}".format(
-            bi=n_iter, ti=max_iters - 1, l=loss))
+        if not mute:
+            print("Gradient Descent({bi}/{ti}): loss={l}".format(
+                bi=n_iter, ti=max_iters - 1, l=loss))
 
     return w, compute_loss(y, tX, w)
 
 
-def least_squares_SGD(y, tX, initial_w, max_iters, gamma):
+def least_squares_SGD(y, tX, initial_w, max_iters, gamma, mute=True):
     """Linear regression using stochastic gradient descent"""
     w = initial_w
     for n_iter in range(max_iters):
@@ -44,8 +45,9 @@ def least_squares_SGD(y, tX, initial_w, max_iters, gamma):
             break
         loss = compute_loss(y, tX, w)
         w = w - gamma * gradient
-        print("Gradient Descent({bi}/{ti}): loss={l}".format(
-            bi=n_iter, ti=max_iters - 1, l=loss))
+        if not mute:
+            print("Stochastic Gradient Descent({bi}/{ti}): loss={l}".format(
+                bi=n_iter, ti=max_iters - 1, l=loss))
 
     return w, compute_loss(y, tX, w)
 
