@@ -30,7 +30,6 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
-
 def load_csv_data(data_path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
     y = np.genfromtxt(data_path, delimiter=",", skip_header=1, dtype=str, usecols=1)
