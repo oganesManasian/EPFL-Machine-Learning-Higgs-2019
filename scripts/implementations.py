@@ -11,22 +11,22 @@ use the standard mini-batch-size 1 (sample just one datapoint)."""
 """Note that all functions should return: (w, loss), which is the last weight 
 vector of the method, and the corresponding loss value (cost function)."""
 
-def compute_loss(y, tx, w):
+def compute_loss(y, tX, w):
     """Compute the loss."""
-    return (1/2*len(y))*np.sum((y-np.dot(tx,w))**2)
+    return (1/(2*len(y)))*np.sum((y-np.dot(tX,w))**2)
 
 
-def compute_gradient(y, tx, w):
+def compute_gradient(y, tX, w):
     """Compute the gradient."""
-    return (-1/len(y))*np.dot(tx.T,y-np.dot(tx,w))
+    return (-1/len(y))*np.dot(tX.T,y-np.dot(tX,w))
 
 
-def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+def least_squares_GD(y, tX, initial_w, max_iters, gamma):
     """Linear regression using gradient descent"""
     w = initial_w
     for n_iter in range(max_iters):
-        gradient = compute_gradient(y,tx,w)
-        loss = compute_loss(y,tx,w)
+        gradient = compute_gradient(y,tX,w)
+        loss = compute_loss(y,tX,w)
         w = w - gamma*gradient
         print("Gradient Descent({bi}/{ti}): loss={l}".format(
               bi=n_iter, ti=max_iters - 1, l=loss))
@@ -34,14 +34,14 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     return w, loss
 
 
-def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
+def least_squares_SGD(y, tX, initial_w, max_iters, gamma):
     """Linear regression using stochastic gradient descent"""
     w = initial_w
     for n_iter in range(max_iters):
-        for y_new,x_new in batch_iter(y,tx,batch_size=1):
+        for y_new,x_new in batch_iter(y,tX,batch_size=1):
             gradient = compute_gradient(y_new,x_new,w)
             break
-        loss = compute_loss(y_new,x_new,w)
+        loss = compute_loss(y,tX,w)
         w = w - gamma*gradient
         print("Gradient Descent({bi}/{ti}): loss={l}, w0={w0}, w1={w1}".format(
               bi=n_iter, ti=max_iters - 1, l=loss))
@@ -49,21 +49,21 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     return w, loss
 
 
-def least_squares(y, tx):
+def least_squares(y, tX):
     """Least squares regression using normal equations"""
-    return np.dot(np.linalg.pinv(np.dot(tx.T, tx)), np.dot(tx.T, y))
+    return np.dot(np.linalg.pinv(np.dot(tX.T, tX)), np.dot(tX.T, y))
 
 
-def ridge_regression(y, tx, lambda_):
+def ridge_regression(y, tX, lambda_):
     """Ridge regression using normal equations"""
     raise NotImplementedError
 
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma):
+def logistic_regression(y, tX, initial_w, max_iters, gamma):
     """Logistic regression using gradient descent or SGD"""
     raise NotImplementedError
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+def reg_logistic_regression(y, tX, lambda_, initial_w, max_iters, gamma):
     """Regularized logistic regression using gradient descent or SGD"""
     raise NotImplementedError
