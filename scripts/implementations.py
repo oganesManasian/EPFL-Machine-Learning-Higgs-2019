@@ -54,7 +54,7 @@ def least_squares_SGD(y, tX, initial_w, max_iters, gamma, mute=True):
 
 def least_squares(y, tX):
     """Least squares regression using normal equations"""
-    w = np.dot(np.linalg.pinv(np.dot(tX.T, tX)), np.dot(tX.T, y))
+    w = np.linalg.solve(np.matmul(tX.T, tX), np.matmul(tX.T, y))
     return w, compute_loss(y, tX, w)
 
 
