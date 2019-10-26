@@ -229,9 +229,10 @@ def compute_log_loss(y, tX, w):
     loss: ndarray, shape (d,)
         Weight vector.
     """
-    n = y.size
     prob = sigmoid(tX.dot(w))
-    loss = -np.mean((y * np.log(prob) + (1 - y) * np.log(1 - prob)))
+    # Use this trick to avoid numerical errors
+    prob_clamp = np.maximum(1e-15, np.minimum(prob, 1 - 1e-15))
+    loss = -np.mean((y * np.log(prob_clamp) + (1 - y) * np.log(1 - prob_clamp)))
     return loss
 
 
