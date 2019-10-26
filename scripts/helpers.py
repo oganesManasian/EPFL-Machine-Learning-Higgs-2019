@@ -1,38 +1,76 @@
 # -*- coding: utf-8 -*-
 """some helper functions for project 1."""
+from __future__ import print_function
+
 import csv
 import numpy as np
+import matplotlib.pyplot as plt
+from ipywidgets import interact
+import ipywidgets as widgets
 
-feature_names = ['DER_mass_MMC',
-                 'DER_mass_transverse_met_lep',
-                 'DER_mass_vis',
-                 'DER_pt_h',
-                 'DER_deltaeta_jet_jet',
-                 'DER_mass_jet_jet',
-                 'DER_prodeta_jet_jet',
-                 'DER_deltar_tau_lep',
-                 'DER_pt_tot',
-                 'DER_sum_pt',
-                 'DER_pt_ratio_lep_tau',
-                 'DER_met_phi_centrality',
-                 'DER_lep_eta_centrality',
-                 'PRI_tau_pt',
-                 'PRI_tau_eta',
-                 'PRI_tau_phi',
-                 'PRI_lep_pt',
-                 'PRI_lep_eta',
-                 'PRI_lep_phi',
-                 'PRI_met',
-                 'PRI_met_phi',
-                 'PRI_met_sumet',
-                 'PRI_jet_num',
-                 'PRI_jet_leading_pt',
-                 'PRI_jet_leading_eta',
-                 'PRI_jet_leading_phi',
-                 'PRI_jet_subleading_pt',
-                 'PRI_jet_subleading_eta',
-                 'PRI_jet_subleading_phi',
-                 'PRI_jet_all_pt']
+init_feature_names = np.array(['DER_mass_MMC',
+                               'DER_mass_transverse_met_lep',
+                               'DER_mass_vis',
+                               'DER_pt_h',
+                               'DER_deltaeta_jet_jet',
+                               'DER_mass_jet_jet',
+                               'DER_prodeta_jet_jet',
+                               'DER_deltar_tau_lep',
+                               'DER_pt_tot',
+                               'DER_sum_pt',
+                               'DER_pt_ratio_lep_tau',
+                               'DER_met_phi_centrality',
+                               'DER_lep_eta_centrality',
+                               'PRI_tau_pt',
+                               'PRI_tau_eta',
+                               'PRI_tau_phi',
+                               'PRI_lep_pt',
+                               'PRI_lep_eta',
+                               'PRI_lep_phi',
+                               'PRI_met',
+                               'PRI_met_phi',
+                               'PRI_met_sumet',
+                               'PRI_jet_num',
+                               'PRI_jet_leading_pt',
+                               'PRI_jet_leading_eta',
+                               'PRI_jet_leading_phi',
+                               'PRI_jet_subleading_pt',
+                               'PRI_jet_subleading_eta',
+                               'PRI_jet_subleading_phi',
+                               'PRI_jet_all_pt'])
+
+
+def interact_feature_hist(tX, y, cur_feature_names):
+    def plot_feature_hist(feature_ind, drop_nan):
+        indices_class_pos = np.where(y == 1)
+        indices_class_neg = np.where(y == -1)
+
+        tX_pos = tX[indices_class_pos, feature_ind]
+        tX_neg = tX[indices_class_neg, feature_ind]
+
+        if drop_nan:
+            tX_pos = tX_pos[tX_pos != -999]
+            tX_neg = tX_neg[tX_neg != -999]
+
+        plt.figure(figsize=(15, 6), dpi=80)
+        plt.subplot(1, 2, 1)
+        plt.title(cur_feature_names[feature_ind] + f" (Feature #{feature_ind})")
+        plt.hist(tX_pos.T, bins=100, color="r", label="+1")
+        plt.hist(tX_neg.T, bins=100, color="b", label="-1")
+        plt.legend()
+
+        plt.subplot(1, 2, 2)
+        plt.title(cur_feature_names[feature_ind] + f" (Feature #{feature_ind})")
+        plt.hist(tX_neg.T, bins=100, color="b", label="-1")
+        plt.hist(tX_pos.T, bins=100, color="r", label="+1")
+        plt.legend()
+
+    interact(plot_feature_hist,
+             feature_ind=widgets.BoundedIntText(value=0, min=0, max=tX.shape[1] - 1, step=1,
+                                                description='Feature index:', disabled=False),
+             drop_nan=widgets.Checkbox(value=False, description='Drop missing values', disabled=False)
+             )
+    plt.show()
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):

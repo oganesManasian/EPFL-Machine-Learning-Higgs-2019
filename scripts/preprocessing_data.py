@@ -2,15 +2,17 @@ import numpy as np
 
 
 def standardize(x):
-    """Standardize the original data set."""
-    mean_x = np.mean(x, axis=0)
+    """Standardize an array of values."""
+    mean_x = np.mean(x)
     x = x - mean_x
-    std_x = np.std(x, axis=0)
-    x = x / std_x
+    std_x = np.std(x)
+    if abs(std_x) > 1e-10:
+        x = x / std_x
     return x
 
 
 def standardize_matrix(tX):
+    """Standardize a matrix"""
     tX_standardized = np.empty_like(tX)
     for feature_index in range(tX_standardized.shape[1]):
         tX_standardized[:, feature_index] = standardize(tX[:, feature_index])
@@ -19,16 +21,16 @@ def standardize_matrix(tX):
 
 def fill_missing_values(tX, filling_function=np.mean, mute=True):
     """Fill missing values using function defined by user (by default np.mean)"""
+    missing_values_feature_indices = np.unique(np.vstack([np.argwhere(row == -999) for row in tX]))
 
     tX_filled = tX.copy()
 
-    missing_values_feature_indices = np.unique(np.vstack([np.argwhere(row == -999) for row in tX_filled]))
-
     for feature_ind in missing_values_feature_indices:
-        X = tX_filled[:, feature_ind]
+        X = tX[:, feature_ind]
         filling_value = filling_function(X[X != -999])
         X[X == -999] = filling_value
         tX_filled[:, feature_ind] = X
+
         if not mute:
             print(f"Feature index {feature_ind}, filling_value {filling_value}")
 
@@ -60,7 +62,7 @@ def undersample(tX, y):
 
 
 def find_outliers(X, mute=True):
-    """returns indices of outliers"""
+    """Returns indices of outliers"""
     LQ = np.quantile(X, q=0.25)
     HQ = np.quantile(X, q=0.75)
     IQR = HQ - LQ
