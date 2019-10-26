@@ -1,5 +1,7 @@
 import numpy as np
 from helpers import batch_iter
+from numpy.linalg import LinAlgError
+
 
 def compute_loss(y, tX, w):
     """Compute loss using Mean Squared Error.
@@ -158,9 +160,10 @@ def least_squares(y, tX):
     loss : ndarray, shape (n,)
         Mean Squared Error vector.
     """
-    gram_mat = tX.T.dot(tX)
-    inv_gram_mat = np.linalg.pinv(gram_mat)
-    w = (inv_gram_mat.dot(tX.T)).dot(y)
+    try:
+        w = np.linalg.solve(tX.T.dot(tX), tX.T.dot(y))
+    except LinAlgError:
+        w = np.zeros((tX.shape[1]))
     loss = compute_loss(y, tX, w)
     return w, loss
 
@@ -185,7 +188,10 @@ def ridge_regression(y, tX, lambda_):
         Mean Squared Error vector.
     """
     d = tX.shape[1]
-    w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
+    try:
+        w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
+    except LinAlgError:
+        w = np.zeros((tX.shape[1]))
     loss = compute_loss(y, tX, w)
     return w, loss
 
@@ -230,9 +236,8 @@ def compute_log_loss(y, tX, w):
         Weight vector.
     """
     prob = sigmoid(tX.dot(w))
-    # Use this trick to avoid numerical errors
-    prob_clamp = np.maximum(1e-15, np.minimum(prob, 1 - 1e-15))
-    loss = -np.mean((y * np.log(prob_clamp) + (1 - y) * np.log(1 - prob_clamp)))
+    prob_clip = np.clip(prob, 1e-15, 1 - 1e-15)  # Use this trick to avoid numerical errors
+    loss = -np.mean((y * np.log(prob_clip) + (1 - y) * np.log(1 - prob_clip)))
     return loss
 
 
