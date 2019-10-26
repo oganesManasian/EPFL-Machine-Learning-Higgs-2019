@@ -1,29 +1,86 @@
 import numpy as np
-from proj1_helpers import batch_iter
-
-"""In the above method signatures, for iterative methods, initial w is
-the initial weight vector, gamma is the step-size, and max iters is the
-number of steps to run. lambda is always the regularization parameter.
-(Note that here we have used the trailing underscore because lambda is
-a reserved word in Python with a different meaning). For SGD, you must
-use the standard mini-batch-size 1 (sample just one datapoint)."""
-
-"""Note that all functions should return: (w, loss), which is the last weight
-vector of the method, and the corresponding loss value (cost function)."""
-
+from helpers import batch_iter
 
 def compute_loss(y, tX, w):
-    """Compute the loss."""
-    return np.round((1 / (2 * len(y))) * np.sum((y - np.dot(tX, w)) ** 2), 4)
+    """Compute loss using Mean Squared Error.
 
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    loss : ndarray, shape (n,)
+        Mean Squared Error vector.
+    """
+    n = y.size
+    e = y - tX.dot(w)
+    loss = 1/(2 * n) * (e.T.dot(e))
+    return loss
 
 def compute_gradient(y, tX, w):
-    """Compute the gradient."""
-    return (-1 / len(y)) * np.dot(tX.T, y - np.dot(tX, w))
+    """Compute the gradient of Mean Squared Error.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    gradient : ndarray, shape (n,)
+        Gradient vector of Mean Squared Error.
+    """
+    n = y.size
+    e = y - tX.dot(w)
+    gradient = -1/n * tX.T.dot(e)
+    return gradient
 
 
 def least_squares_GD(y, tX, initial_w, max_iters, gamma, mute=True):
-    """Linear regression using gradient descent"""
+    """Linear regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    initial_w: ndarray, shape (d,)
+        Initial weight vector.
+
+    max_iters: int
+        Maximum number of iterations.
+
+    gamma: float
+        Gradient step size.
+
+    mute: bool, default True
+        Print iterations information.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    final_loss : ndarray, shape (n,)
+        Mean Squared Error vector.
+    """
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_gradient(y, tX, w)
@@ -33,86 +90,307 @@ def least_squares_GD(y, tX, initial_w, max_iters, gamma, mute=True):
             print("Gradient Descent({bi}/{ti}): loss={l}".format(
                 bi=n_iter, ti=max_iters - 1, l=loss))
 
-    return w, compute_loss(y, tX, w)
+    final_loss = compute_loss(y, tX, w)
+    return w, final_loss
 
 
 def least_squares_SGD(y, tX, initial_w, max_iters, gamma, mute=True):
-    """Linear regression using stochastic gradient descent"""
+    """Linear regression using stochastic gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    initial_w: ndarray, shape (d,)
+        Initial weight vector.
+
+    max_iters: int
+        Maximum number of iterations.
+
+    gamma: float
+        Gradient step size.
+
+    mute: bool, default True
+        Print iterations information.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    final_loss : ndarray, shape (n,)
+        Mean Squared Error vector.
+    """
     w = initial_w
     for n_iter in range(max_iters):
         for y_new, x_new in batch_iter(y, tX, batch_size=1):
             gradient = compute_gradient(y_new, x_new, w)
-            break
         loss = compute_loss(y, tX, w)
         w = w - gamma * gradient
         if not mute:
-            print("Stochastic Gradient Descent({bi}/{ti}): loss={l}".format(
-                bi=n_iter, ti=max_iters - 1, l=loss))
+            print("Stochastic Gradient Descent({bi}/{ti}): loss={l}"
+                .format(bi=n_iter, ti=max_iters - 1, l=loss))
 
-    return w, compute_loss(y, tX, w)
+    final_loss = compute_loss(y, tX, w)
+    return w, final_loss
 
 
 def least_squares(y, tX):
-    """Least squares regression using normal equations"""
-    w = np.linalg.solve(np.matmul(tX.T, tX), np.matmul(tX.T, y))
-    return w, compute_loss(y, tX, w)
+    """Least squares regression using normal equations
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    loss : ndarray, shape (n,)
+        Mean Squared Error vector.
+    """
+    gram_mat = tX.T.dot(tX)
+    inv_gram_mat = np.linalg.pinv(gram_mat)
+    w = (inv_gram_mat.dot(tX.T)).dot(y)
+    loss = compute_loss(y, tX, w)
+    return w, loss
 
 
 def ridge_regression(y, tX, lambda_):
-    """Ridge regression using normal equations"""
-    w = np.linalg.solve(np.matmul(tX.T, tX) + lambda_ * np.identity(tX.shape[1]), np.matmul(tX.T, y))
-    return w, compute_loss(y, tX, w)
+    """Ridge regression using normal equations
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    loss : ndarray, shape (n,)
+        Mean Squared Error vector.
+    """
+    d = tX.shape[1]
+    w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
+    loss = compute_loss(y, tX, w)
+    return w, loss
 
 
 def sigmoid(z):
+    """Computes sigmoid function.
+
+                       1
+    sigmoid(x) =  ------------
+                   1 + e^(-z)
+
+    Parameters
+    ----------
+    z : float
+        Real-value argument.
+
+    Returns
+    -------
+    s : float
+        Sigmoid function.
+    """
     return 1 / (1 + np.exp(-z))
 
 
 def compute_log_loss(y, tX, w):
+    """Compute logarithmic loss.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    loss: ndarray, shape (d,)
+        Weight vector.
+    """
     n = y.size
     prob = sigmoid(tX.dot(w))
-    return -np.mean((y * np.log(prob) + (1 - y) * np.log(1 - prob)))
+    loss = -np.mean((y * np.log(prob) + (1 - y) * np.log(1 - prob)))
+    return loss
 
 
 def compute_log_gradient(y, tX, w):
+    """Compute logarithmic gradient.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    gradient : ndarray, shape (n,)
+        Gradient vector.
+    """
     n = y.size
-    return (1 / n) * tX.T.dot(sigmoid(tX.dot(w)) - y)
+    gradient = (1 / n) * tX.T.dot(sigmoid(tX.dot(w)) - y)
+    return gradient
 
 
 def logistic_regression(y, tX, initial_w, max_iters, gamma, mute=True):
-    """Logistic regression using gradient descent or SGD"""
+    """Logistic regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    initial_w: ndarray, shape (d,)
+        Initial weight vector.
+
+    max_iters: int
+        Maximum number of iterations.
+
+    gamma: float
+        Gradient step size.
+
+    mute: bool, default True
+        Print iterations information.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    final_loss : ndarray, shape (n,)
+        Loss vector.
+    """
     w = initial_w
     for n_iter in range(max_iters):
-        for y_new, x_new in batch_iter(y, tX, batch_size=1):
-            gradient = compute_log_gradient(y_new, x_new, w)
+        gradient = compute_log_gradient(y, tX, w)
         loss = compute_log_loss(y, tX, w)
         w = w - gamma * gradient
         if not mute:
-            print("Stochastic Gradient Descent({bi}/{ti}): loss={l}".format(
-                bi=n_iter, ti=max_iters - 1, l=loss))
-    return w, compute_log_loss(y, tX, w)
+            print("Gradient Descent({bi}/{ti}): loss={l}"
+            .format(bi=n_iter, ti=max_iters - 1, l=loss))
+
+    final_loss = compute_log_loss(y, tX, w)
+    return w, final_loss
 
 
 def compute_reg_log_loss(y, tX, w, lambda_):
+    """Computes regularized logarithmic loss.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    loss: ndarray, shape (d,)
+        Weight vector.
+    """
     n = y.size
     reg_term = (lambda_ / (2 * n) * sum(w ** 2))
-    return compute_log_loss(y, tX, w) + reg_term
+    loss = compute_log_loss(y, tX, w) + reg_term
+    return loss
 
 
 def compute_reg_log_gradient(y, tX, w, lambda_):
+    """Compute regularized logarithmic gradient.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    Returns
+    -------
+    gradient : ndarray, shape (n,)
+        Gradient vector.
+    """
     reg_term = lambda_ / y.size * sum(w)
-    return compute_log_gradient(y, tX, w) + reg_term
+    gradient = compute_log_gradient(y, tX, w) + reg_term
+    return gradient
 
 
 def reg_logistic_regression(y, tX, lambda_, initial_w, max_iters, gamma, mute=True):
-    """Regularized logistic regression using gradient descent or SGD"""
+    """Regularized logistic regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray, shape (n,)
+        Output vector.
+
+    tX: ndarray, shape (n, d)
+        Training data.
+
+    initial_w: ndarray, shape (d,)
+        Initial weight vector.
+
+    max_iters: int
+        Maximum number of iterations.
+
+    gamma: float
+        Gradient step size.
+
+    mute: bool, default True
+        Print iterations information.
+
+    Returns
+    -------
+    w: ndarray, shape (d,)
+        Weight vector.
+
+    final_loss : ndarray, shape (n,)
+        Loss vector.
+    """
     w = initial_w
     for n_iter in range(max_iters):
-        for y_new, x_new in batch_iter(y, tX, batch_size=64):
-            gradient = compute_reg_log_gradient(y_new, x_new, w, lambda_)
+        gradient = compute_reg_log_gradient(y, tX, w, lambda_)
         loss = compute_reg_log_loss(y, tX, w, lambda_)
         w = w - gamma * gradient
         if not mute:
-            print("Stochastic Gradient Descent({bi}/{ti}): loss={l}".format(
-                bi=n_iter, ti=max_iters - 1, l=loss))
-    return w, compute_reg_log_loss(y, tX, w, lambda_)
+            print("Regularized logistic regression using Gradient Descent({bi}/{ti}): loss={l}"
+            .format(bi=n_iter, ti=max_iters - 1, l=loss))
+
+    final_loss = compute_reg_log_loss(y, tX, w, lambda_)
+    return w, final_loss
