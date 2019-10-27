@@ -21,11 +21,13 @@ def main():
 
     np.random.seed(2019)
 
-    tX_prep, y_prep = preprocess_data(tX, y)
-    tX_test_prep, _ = preprocess_data(tX_test, None)
+    tX_stacked = np.vstack((tX, tX_test))
+    # Preprocess data together to have the same shifts while creating log or root features
+    tX_stacked_prep, _ = preprocess_data(tX_stacked, None)
+    tX_prep, tX_test_prep = np.split(tX_stacked_prep, [len(tX)])
 
-    lambda_ = 1
-    w, _ = ridge_regression(y_prep, tX_prep, lambda_)
+    lambda_ = 0
+    w, _ = ridge_regression(y, tX_prep, lambda_)
 
     y_pred = predict_labels(w, tX_test_prep)
     print(np.unique(y_pred, return_counts=True))
@@ -34,4 +36,5 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     main()
