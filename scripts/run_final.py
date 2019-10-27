@@ -31,14 +31,16 @@ if __name__ == "__main__":
 	y, tX, ids = load_csv_data(DATA_TRAIN_PATH)
 	_, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
 
-	tX = fill_missing_values(tX,mute=True)
-	tX = np.column_stack((np.ones(tX.shape[0]),tX))
+	tX_stacked = np.vstack((tX, tX_test))
+	tX_stacked = fill_missing_values(tX_stacked,mute=True)
+	tX_stacked = np.column_stack((np.ones(tX_stacked.shape[0]),tX_stacked))
 
 	print('Feature engineering...')
-	log_tX = log_features(tX)
-	tX_new = poly_features(tX,degree=6)
-	tX_new = np.column_stack((tX_new,log_tX))
+	log_tX_stacked = log_features(tX_stacked)
+	tX_stacked_new = poly_features(tX_stacked,degree=6)
+	tX_stacked_new = np.column_stack((tX_stacked_new,log_tX_stacked))
 
+	tX_new, tX_test_new = np.split(tX_stacked_new,[tX.shape[0]])
 
 	train_x, train_y, test_x, test_y = split_data(tX_new,y,0.8)
 
@@ -51,14 +53,10 @@ if __name__ == "__main__":
 	prediction_for_test = predict_labels(w,test_x)
 	print('Test set accuracy = {}%'.format(compute_accuracy(test_y,prediction_for_test)))
 
+	print('Fitting the model on the whole data')
+	w,_ = ridge_regression(y,tX_new,lambda_=0) 
 
-	print('Creating submission for the real test data...')
-	tX_test = fill_missing_values(tX_test,mute=True)
-	tX_test = np.column_stack((np.ones(tX_test.shape[0]),tX_test))
-	log_tX_test = log_features(tX_test)
-	tX_test_new = poly_features(tX_test,degree=6)
-	tX_test_new = np.column_stack((tX_test_new,log_tX_test))
-
+	print('Creating submission for the real test data')
 	prediction = predict_labels(w,tX_test_new)
 	create_csv_submission(ids_test,prediction,'submission')
 	print('Done!')
