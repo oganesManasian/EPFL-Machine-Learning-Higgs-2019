@@ -164,7 +164,7 @@ def least_squares(y, tX):
         w = np.linalg.solve(tX.T.dot(tX), tX.T.dot(y))
     except LinAlgError:
         print("Singular matrix exception")
-        w = np.zeros((tX.shape[1]))
+        w = np.dot(np.linalg.pinv(tX.T.dot(tX)), tX.T.dot(y))
     loss = compute_loss(y, tX, w)
     return w, loss
 
@@ -193,7 +193,7 @@ def ridge_regression(y, tX, lambda_):
         w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
     except LinAlgError:
         print("Singular matrix exception")
-        w = np.zeros((tX.shape[1]))
+        w = np.dot(np.linalg.pinv(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
     loss = compute_loss(y, tX, w)
     return w, loss
 
@@ -215,7 +215,10 @@ def sigmoid(z):
     s : float
         Sigmoid function.
     """
-    return 1 / (1 + np.exp(-z))
+    if z>=0:
+        return 1 / (1 + np.exp(-z))
+    else:
+        return np.exp(z) / (1 + np.exp(z))
 
 
 def compute_log_loss(y, tX, w):
@@ -331,7 +334,7 @@ def compute_reg_log_loss(y, tX, w, lambda_):
         Weight vector.
     """
     n = y.size
-    reg_term = (lambda_ / (2 * n) * sum(w ** 2))
+    reg_term = (lambda_ / (2 * n) * np.sum(w ** 2))
     loss = compute_log_loss(y, tX, w) + reg_term
     return loss
 
