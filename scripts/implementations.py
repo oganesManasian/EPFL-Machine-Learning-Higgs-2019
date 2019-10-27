@@ -215,10 +215,8 @@ def sigmoid(z):
     s : float
         Sigmoid function.
     """
-    if z>=0:
-        return 1 / (1 + np.exp(-z))
-    else:
-        return np.exp(z) / (1 + np.exp(z))
+    z = np.clip(z, -100, None)
+    return 1 / (1 + np.exp(-z))
 
 
 def compute_log_loss(y, tX, w):
