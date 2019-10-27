@@ -147,7 +147,8 @@ def predict_labels(weights, data):
 
 
 def compute_accuracy(y_true, y_pred):
-    return np.round(np.sum(y_pred * y_true > 0) / len(y_true), 4)
+    """Gets accuracy by computing percent of equal elements in two arrays"""
+    return np.round(np.sum(y_pred * y_true > 0) / len(y_true), 6)
 
 
 def create_csv_submission(ids, y_pred, name):

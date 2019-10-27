@@ -37,6 +37,39 @@ def fill_missing_values(tX, filling_function=np.mean, mute=True):
     return tX_filled
 
 
+def add_bias(tX):
+    """Append column with ones"""
+    return np.hstack((tX, np.ones((tX.shape[0], 1))))
+
+
+def add_derived_feature(tX, feature_indices, deriving_function):
+    """Appends columns which values are derived from columns with
+    feature_indices indices using deriving_function function"""
+    for feature_ind in feature_indices:
+        tX = np.hstack((tX,
+                        (deriving_function(tX[:, feature_ind])).reshape((tX.shape[0], 1))
+                        ))
+    return tX
+
+
+def add_log(tX, feature_indices):
+    """Appends columns which values are derived from columns with
+    feature_indices indices applying logarithm"""
+    return add_derived_feature(tX, feature_indices, deriving_function=lambda x: np.log(x - min(x) + 1))
+
+
+def add_root(tX, feature_indices):
+    """Appends columns which values are derived from columns with
+    feature_indices indices applying square root"""
+    return add_derived_feature(tX, feature_indices, deriving_function=lambda x: (x - min(x) + 1) ** (1 / 2))
+
+
+def add_degree(tX, feature_indices, degree):
+    """Appends columns which values are derived from columns with
+    feature_indices indices applying power function with degree"""
+    return add_derived_feature(tX, feature_indices, deriving_function=lambda x: x ** degree)
+
+
 def oversample(tX, y):
     """Oversample minor label to balance classes"""
     unique, count = np.unique(y, return_counts=True)
@@ -57,7 +90,7 @@ def undersample(tX, y):
     indices_to_choose = np.random.choice(indices_major_class, samples_number_to_choose)
     indices_to_choose = np.hstack((indices_to_choose, indices_minor_class))
     tX_undersamled = tX[indices_to_choose]
-    y_undersampled = tX[indices_to_choose]
+    y_undersampled = y[indices_to_choose]
     return tX_undersamled, y_undersampled
 
 
