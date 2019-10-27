@@ -193,7 +193,7 @@ def ridge_regression(y, tX, lambda_):
         w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
     except LinAlgError:
         print("Singular matrix exception")
-        w = np.dot(np.linalg.pinv(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
+        w = np.dot(np.linalg.pinv(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y)))
     loss = compute_loss(y, tX, w)
     return w, loss
 
