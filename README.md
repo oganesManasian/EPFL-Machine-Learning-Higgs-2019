@@ -1,5 +1,4 @@
 # EPFL-Machine-Learning-Higgs-2019
-Higgs Boson Machine Learning Challenge
 
 #### How to run
 
@@ -7,7 +6,7 @@ Higgs Boson Machine Learning Challenge
 
 #### File descriptions
 
-implementations.py - contains implementations of the following methods: 
+implementations.py - contains numpy implementations of the following methods: 
 * least squares (using gradient descent, stochastic gradient descent, and normal equations)
 * ridge regression using normal equations
 * logistic regression
