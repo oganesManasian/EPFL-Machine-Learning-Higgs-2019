@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 from implementations import ridge_regression
-from helpers import compute_accuracy, predict_labels, load_csv_data, create_csv_submission, split_data
-import experiments
+from helpers import compute_accuracy, predict_labels, load_csv_data, create_csv_submission, split_data, lambda_cv
+from preprocessing_data import preprocess_data, divide_data
 
 DATA_TRAIN_PATH = "../data/train.csv"
 DATA_TEST_PATH = '../data/test.csv'
@@ -16,37 +16,15 @@ def main():
 
     np.random.seed(2019)
 
-    tX_stacked = np.vstack((tX_train, tX_test))
-    # Preprocess data together to have the same shifts while creating log or root features
-    prep_param = {"bias": True, "fill": True, "standardize": False, "degree": 11, "log": True, "root": True}
-    tX_stacked_prep, *_ = experiments.preprocess_data(tX_stacked, None, prep_param)
-    tX_train_prep, tX_test_prep = np.split(tX_stacked_prep, [len(tX_train)])
-
-    lambda_ = experiments.lambda_cv(tX_train_prep, y_train)[0]
-    print(f"Best lambda: {lambda_}")
-    w, _ = ridge_regression(y_train, tX_train_prep, lambda_)
-
-    y_pred = predict_labels(w, tX_test_prep)
-    print(np.unique(y_pred, return_counts=True))
-
-    create_csv_submission(ids_test, y_pred, OUTPUT_PATH)
-
-
-def main_3models():
-    y_train, tX_train, ids = load_csv_data(DATA_TRAIN_PATH)
-    _, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
-
-    np.random.seed(2019)
-
     # Preprocess data together to have the same shifts while creating log or root features
     tX_stacked = np.vstack((tX_train, tX_test))
-    prep_param = {"bias": True, "fill": True, "standardize": False, "degree": 6, "log": True, "root": True}
-    tX_stacked_prep, *_ = experiments.preprocess_data(tX_stacked, None, prep_param)
+    prep_param = {"bias": True, "fill": True, "standardize": False, "degree": 8, "log": True, "root": True}
+    tX_stacked_prep, *_ = preprocess_data(tX_stacked, None, prep_param)
     tX_train_prep, tX_test_prep = np.split(tX_stacked_prep, [len(tX_train)])
 
     # Split data according to PRI_jet_num value
-    tX_tr_splitted, indices_tr = experiments.divide_data(tX_train_prep)
-    tX_te_splitted, indices_te = experiments.divide_data(tX_test_prep)
+    tX_tr_splitted, indices_tr = divide_data(tX_train_prep)
+    tX_te_splitted, indices_te = divide_data(tX_test_prep)
     n_models = len(indices_tr)
 
     y_tr_splitted = []
@@ -56,7 +34,7 @@ def main_3models():
     # Train
     weights = []
     for i in range(n_models):
-        lambda_ = experiments.lambda_cv(tX_tr_splitted[i], y_tr_splitted[i])
+        lambda_ = lambda_cv(tX_tr_splitted[i], y_tr_splitted[i])
         print(f"Class {i}, lambda: {lambda_}")
         weights.append(ridge_regression(y_tr_splitted[i], tX_tr_splitted[i], lambda_)[0])
 
@@ -76,5 +54,4 @@ def main_3models():
 
 
 if __name__ == "__main__":
-    # main()
-    main_3models()
+    main()

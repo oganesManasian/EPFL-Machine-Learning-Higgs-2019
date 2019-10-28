@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from ipywidgets import interact
 import ipywidgets as widgets
 
+import implementations
+
 init_feature_names = np.array(['DER_mass_MMC',
                                'DER_mass_transverse_met_lep',
                                'DER_mass_vis',
@@ -73,32 +75,6 @@ def interact_feature_hist(tX, y, cur_feature_names):
     plt.show()
 
 
-def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
-    """
-    Generate a minibatch iterator for a dataset.
-    Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
-    Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
-    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
-    Example of use :
-    for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
-        <DO-SOMETHING>
-    """
-    data_size = len(y)
-
-    if shuffle:
-        shuffle_indices = np.random.permutation(np.arange(data_size))
-        shuffled_y = y[shuffle_indices]
-        shuffled_tx = tx[shuffle_indices]
-    else:
-        shuffled_y = y
-        shuffled_tx = tx
-    for batch_num in range(num_batches):
-        start_index = batch_num * batch_size
-        end_index = min((batch_num + 1) * batch_size, data_size)
-        if start_index != end_index:
-            yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
-
-
 def compute_column_correlation(tX):
     """Compute correlation of columns in matrix"""
     n_features = tX.shape[1]
@@ -120,6 +96,36 @@ def find_correlated_features(tX, threshold):
     correlated_features_pairs = [(i, j) for (i, j) in zip(correlated_features[0], correlated_features[1]) if i < j]
 
     return correlated_features_pairs
+
+
+def lambda_cv(tX, y, plot=False):
+    lambdas = np.logspace(-5, 5, 15)
+
+    tX_tr, y_tr, tX_te, y_te = split_data(tX, y, ratio=0.8, seed=1)
+
+    accs_tr = []
+    accs_te = []
+
+    for lambda_ in lambdas:
+        w, _ = implementations.ridge_regression(y_tr, tX_tr, lambda_)
+        y_pr_tr = predict_labels(w, tX_tr)
+        y_pr_te = predict_labels(w, tX_te)
+        accs_tr.append(compute_accuracy(y_tr, y_pr_tr))
+        accs_te.append(compute_accuracy(y_te, y_pr_te))
+
+    min_acc = max(accs_te)
+    best_lambda = lambdas[np.argwhere(accs_te == min_acc)][0][0]
+
+    if plot:
+        plt.plot(lambdas, accs_tr, label="Train")
+        plt.plot(lambdas, accs_te, label="Test")
+        plt.plot(best_lambda, min_acc, "*", label="Best value")
+        plt.xlabel("Lambda")
+        plt.ylabel("Accuracy")
+        plt.legend()
+        plt.show()
+
+    return best_lambda
 
 
 def load_csv_data(data_path, sub_sample=False):

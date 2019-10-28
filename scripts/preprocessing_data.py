@@ -70,6 +70,60 @@ def add_degree(tX, feature_indices, degree):
     return add_derived_feature(tX, feature_indices, deriving_function=lambda x: x ** degree)
 
 
+def preprocess_data(tX, y, params):
+    """Preprocess data in the way stated in params argument"""
+    description = params
+    tX_new = tX.copy()
+
+    if params.get("fill"):
+        tX_new = fill_missing_values(tX_new)
+
+    for deg in range(2, params.get("degree", 0) + 1):
+        tX_new = add_degree(tX_new, range(0, tX.shape[1]), degree=deg)
+
+    if params.get("log"):
+        tX_new = add_log(tX_new, range(0, tX.shape[1]))
+
+    if params.get("root"):
+        tX_new = add_root(tX_new, range(0, tX.shape[1]))
+
+    if params.get("bias"):
+        tX_new = add_bias(tX_new)
+
+    if params.get("standardize"):
+        tX_new = standardize_matrix(tX_new)
+
+    return tX_new, y, description
+
+
+def divide_data(tX):
+    """Divides dataset into 3 parts according to PRI_jet_num feature value.
+    Undefined columns for particular values of PRI_jet_num are dropped"""
+    cat_feature_ind = 22
+    cat_feature_column = tX[:, cat_feature_ind]
+
+    # Split dataset
+    indices = [np.where(cat_feature_column == 0),
+               np.where(cat_feature_column == 1),
+               np.where(cat_feature_column >= 2)]
+
+    tX_splitted = []
+
+    # Drop features which are undefined with particular value of PRI_jet_num
+    for i in range(len(indices)):
+        tX_splitted.append(tX[indices[i]])
+
+    features_to_drop = {0: [4, 5, 6, 12, 22, 23, 24, 25, 26, 27, 28],
+                        1: [4, 5, 6, 12, 22, 26, 27, 28],
+                        2: [22]}
+
+    for jet_class, feature_list in features_to_drop.items():
+        features_to_leave = list(set(range(tX.shape[1])) - set(feature_list))
+        tX_splitted[jet_class] = tX_splitted[jet_class][:, features_to_leave]
+
+    return tX_splitted, indices
+
+
 def oversample(tX, y):
     """Oversample minor label to balance classes"""
     unique, count = np.unique(y, return_counts=True)
