@@ -99,6 +99,29 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
+def compute_column_correlation(tX):
+    """Compute correlation of columns in matrix"""
+    n_features = tX.shape[1]
+    corr_matrix = np.zeros((n_features, n_features))
+    for i in range(n_features):
+        for j in range(i, n_features):
+            corr_matrix[i, j] = corr_matrix[j, i] = np.corrcoef(tX[:, i], tX[:, j])[0, 1]
+
+    return corr_matrix
+
+
+def find_correlated_features(tX, threshold):
+    """Find correlated features using correlation matrix"""
+    corr_matrix = compute_column_correlation(tX)
+    print(f"{np.count_nonzero(np.isnan(corr_matrix))} nan elements")
+
+    # Extract pairs of correlated features
+    correlated_features = np.where(corr_matrix >= threshold)
+    correlated_features_pairs = [(i, j) for (i, j) in zip(correlated_features[0], correlated_features[1]) if i < j]
+
+    return correlated_features_pairs
+
+
 def load_csv_data(data_path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
     y = np.genfromtxt(data_path, delimiter=",", skip_header=1, dtype=str, usecols=1)

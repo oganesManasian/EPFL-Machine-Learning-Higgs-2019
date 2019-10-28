@@ -163,7 +163,7 @@ def least_squares(y, tX):
     try:
         w = np.linalg.solve(tX.T.dot(tX), tX.T.dot(y))
     except LinAlgError:
-        print("Singular matrix exception")
+        print("Singular matrix exception => using pseudo inverse matrix")
         w = np.dot(np.linalg.pinv(tX.T.dot(tX)), tX.T.dot(y))
     loss = compute_loss(y, tX, w)
     return w, loss
@@ -192,7 +192,7 @@ def ridge_regression(y, tX, lambda_):
     try:
         w = np.linalg.solve(tX.T.dot(tX) + lambda_ * np.identity(d), tX.T.dot(y))
     except LinAlgError:
-        print("Singular matrix exception")
+        print("Singular matrix exception => using pseudo inverse matrix")
         w = np.dot(np.linalg.pinv(tX.T.dot(tX) + lambda_ * np.identity(d)), tX.T.dot(y))
     loss = compute_loss(y, tX, w)
     return w, loss
