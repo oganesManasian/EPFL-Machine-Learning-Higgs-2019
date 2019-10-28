@@ -9,7 +9,7 @@ Higgs Boson Machine Learning Challenge: binary classification problem to disting
 
 #### How to run
 
-Download the train.csv and test.csv from https://www.kaggle.com/c/higgs-boson/data and put the files in a folder named "data".
+Create an account in AIcrowd, download the train.csv and test.csv from https://www.aicrowd.com/challenges/epfl-machine-learning-higgs-2019/dataset_files and put the files in a folder named "data".
 
 ```python3 run.py```
 
