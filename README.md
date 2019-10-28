@@ -1,6 +1,15 @@
 # EPFL-Machine-Learning-Higgs-2019
 
+Higgs Boson Machine Learning Challenge: binary classification problem to distinguish whether the observed decay particles pertain to a Higgs boson or not.
+
+#### Prerequisites
+
+* Python 3.6
+* Numpy 
+
 #### How to run
+
+Download the train.csv and test.csv from https://www.kaggle.com/c/higgs-boson/data and put the files in a folder named "data".
 
 ```python3 run.py```
 
@@ -18,6 +27,10 @@ preprocessing_data.py - contains util methods for preprocessing data:
 * augmenting data using functions such as logarithm, polynomials, and square root
 * handling outliers
 
-helpers.py - contains util methods for loading data, visualizing data, analyzing model performance and making csv submission
+helpers.py - contains util methods for 
+* loading data
+* visualizing data
+* analyzing model performance
+* making csv submission
 
 
